@@ -1,14 +1,22 @@
-import { useCallback, useState } from "react";
-import { Link } from "react-router-dom";
-
+import { useMutation } from "@tanstack/react-query";
+import { useCallback, useContext, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { LoginService } from "../Services/AuthService";
+import { toast } from "react-toastify";
+import { authContext } from "../context/AuthContext";
+import HashLoader from "react-spinners/HashLoader";
 const Login = () => {
+  const navigate = useNavigate();
   //!Props
 
   //! State
+  const { dispatch } = useContext(authContext);
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  const mutateLogin = useMutation({ mutationFn: () => LoginService(formData) });
   //! Function
   const handleInputChange = useCallback((e) => {
     setFormData((prev) => {
@@ -18,6 +26,35 @@ const Login = () => {
       };
     });
   }, []);
+
+  const handleLogin = useCallback(
+    async (e) => {
+      e.preventDefault();
+      try {
+        const response = await mutateLogin.mutateAsync();
+        const { status, message } = response?.data;
+        if (!status) {
+          throw new Error(message);
+        }
+
+        dispatch({
+          type: "LOGIN_SUCCESS",
+          payload: {
+            user: response?.data?.data,
+            token: response?.data?.token,
+            role: response?.data?.role,
+          },
+        });
+        toast.success(message);
+        navigate("/home");
+        console.log("jkanjds", response);
+      } catch (error) {
+        console.log("error", error);
+        toast.error(error.message);
+      }
+    },
+    [formData]
+  );
   //! Effect
 
   //! Render
@@ -27,7 +64,7 @@ const Login = () => {
         <h3 className="text-headingColor text-[22px] leading-9 font-bold mb-10">
           Hello <span className="text-primaryColor">Welcome</span> Back 🎉
         </h3>
-        <form className="py-4 md:py-0">
+        <form className="py-4 md:py-0" onSubmit={handleLogin}>
           <div className="mb-5">
             <input
               type="email"
@@ -53,10 +90,15 @@ const Login = () => {
 
           <div className="mt-7">
             <button
+              disabled={mutateLogin.isLoading && true}
               type="submit"
               className="w-full bg-primaryColor text-white text-[18px] leading-[30px] rounded-lg px-4 py-3"
             >
-              Login
+              {mutateLogin.isLoading ? (
+                <HashLoader size={25} color="#ffffff" />
+              ) : (
+                "Login"
+              )}
             </button>
           </div>
           <p className="mt-5 text-textColor text-center">

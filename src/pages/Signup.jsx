@@ -1,8 +1,14 @@
 import signupImg from "../assets/images/signup.gif";
 import avatarImg from "../assets/images/doctor-img01.png";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCallback, useState } from "react";
+import uploadImageToCloudinary from "../utils/uploadCloudinary";
+import { useMutation } from "@tanstack/react-query";
+import { RegisterService } from "../Services/AuthService";
+import { toast } from "react-toastify";
+import HashLoader from "react-spinners/HashLoader";
 const Signup = () => {
+  const navigate = useNavigate();
   //! Props
 
   //! State
@@ -16,6 +22,10 @@ const Signup = () => {
     gender: "",
     role: "patient",
   });
+
+  const mutateRegister = useMutation({
+    mutationFn: () => RegisterService(formData),
+  });
   //! Function
   const handleInputChange = useCallback((e) => {
     setFormData((prev) => {
@@ -26,13 +36,36 @@ const Signup = () => {
     });
   }, []);
 
-  const handleFileInputChange = useCallback(async (e) => {
-    const file = e.target.file[0];
-  }, []);
+  const handleFileInputChange = useCallback(
+    async (e) => {
+      const file = e.target.files[0];
+      const data = await uploadImageToCloudinary(file);
+      setPreviewURL(data?.url);
+      setSelectedFile(data?.url);
+      setFormData({ ...formData, photo: data?.url });
+    },
+    [previewURL, selectedFile, formData]
+  );
 
-  const submitHandler = useCallback(async (e) => {
-    e.preventDefault();
-  }, []);
+  const submitHandler = useCallback(
+    async (e) => {
+      e.preventDefault();
+      try {
+        const response = await mutateRegister.mutateAsync();
+        const { success, message } = response?.data;
+        if (!success) {
+          throw new Error(message);
+        }
+
+        toast.success(message);
+        navigate("/login");
+      } catch (error) {
+        console.log("error", error);
+        toast.error(error.message);
+      }
+    },
+    [formData]
+  );
   //! Effect
 
   //! Render
@@ -114,9 +147,15 @@ const Signup = () => {
               </div>
 
               <div className="mb-5 flex items-center gap-3">
-                <figure className="w-[60px] h-[60px] rounded-full border-2 border-solid border-primaryColor flex items-center justify-center">
-                  <img src={avatarImg} alt="" className="w-full rounded-full" />
-                </figure>
+                {selectedFile && (
+                  <figure className="w-[60px] h-[60px] rounded-full border-2 border-solid border-primaryColor flex items-center justify-center">
+                    <img
+                      src={previewURL}
+                      alt=""
+                      className="w-full rounded-full"
+                    />
+                  </figure>
+                )}
 
                 <div className="relative w-[130px] h-[50px]">
                   <input
@@ -137,10 +176,15 @@ const Signup = () => {
               </div>
               <div className="mt-7">
                 <button
+                  disabled={mutateRegister.isLoading && true}
                   type="submit"
                   className="w-full bg-primaryColor text-white text-[18px] leading-[30px] rounded-lg px-4 py-3"
                 >
-                  Sign Up
+                  {mutateRegister.isLoading ? (
+                    <HashLoader size={35} color="#ffffff" />
+                  ) : (
+                    "Sign Up"
+                  )}
                 </button>
               </div>
               <p className="mt-5 text-textColor text-center">
