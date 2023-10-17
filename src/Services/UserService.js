@@ -13,3 +13,9 @@ export const getAppointmentsUserService = async () => {
     headers: { Authorization: `Bearer ${token}` },
   });
 };
+
+export const updateProfileUserService = async (id, data) => {
+  return await axios.put(`/users/${id}`, data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+};

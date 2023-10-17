@@ -14,6 +14,7 @@ const MyAccount = () => {
   const { dispatch } = useContext(authContext);
   const [tab, setTab] = useState("bookings");
   const [msgErr, setMsgErr] = useState(null);
+  const [dataUser, setDataUser] = useState(null);
   const { isLoading, isFetching, refetch } = useQuery(
     ["profile-user"],
     getProfileUserService,
@@ -21,9 +22,11 @@ const MyAccount = () => {
       enabled: false,
       onSuccess: (response) => {
         console.log("responseData", response);
-        const {success} = response;
-        if(!success){
-          setMsgErr(response?.message)
+        const { success } = response;
+        if (!success) {
+          setMsgErr(response?.message);
+        } else {
+          setDataUser(response?.data);
         }
       },
     }
@@ -40,9 +43,7 @@ const MyAccount = () => {
   return (
     <section>
       {isLoading && isFetching && !msgErr && <Loading />}
-      {msgErr && !isLoading && !isFetching && (
-        <Error errMessage={msgErr} />
-      )}
+      {msgErr && !isLoading && !isFetching && <Error errMessage={msgErr} />}
       {!isLoading && !isFetching && !msgErr && (
         <div className="max-w-[1170px] px-5 mx-auto">
           <div className="grid md:grid-cols-3 gap-10">
@@ -50,7 +51,7 @@ const MyAccount = () => {
               <div className="flex items-center justify-center">
                 <figure className="w-[100px] h-[100px] rounded-full border-2 border-solid border-primaryColor">
                   <img
-                    src={userImg}
+                    src={dataUser?.photo}
                     alt=""
                     className="w-full h-full rounded-full"
                   />
@@ -58,15 +59,15 @@ const MyAccount = () => {
               </div>
               <div className="text-center mt-4">
                 <h3 className="text-[18px] leading-[30px] text-headingColor font-bold">
-                  Keyly
+                  {dataUser?.name}
                 </h3>
                 <p className="text-textColor text-[15px] leading-6 font-medium">
-                  lahoat2k1@gmail.com
+                  {dataUser?.email}
                 </p>
                 <p className="text-textColor text-[15px] leading-6 font-medium">
                   Blood Type:{" "}
                   <span className="ml-2 text-headingColor text-[22px] leading-8">
-                    o-
+                    {dataUser?.bloodType}
                   </span>
                 </p>
               </div>
@@ -106,7 +107,7 @@ const MyAccount = () => {
               </div>
 
               {tab === "bookings" && <MyBookings />}
-              {tab === "settings" && <Profile />}
+              {tab === "settings" && <Profile userData={dataUser} />}
             </div>
           </div>
         </div>

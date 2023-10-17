@@ -32,7 +32,7 @@ const Login = () => {
       e.preventDefault();
       try {
         const response = await mutateLogin.mutateAsync();
-        const { status, message } = response?.data;
+        const { status, message } = response;
         if (!status) {
           throw new Error(message);
         }
@@ -40,9 +40,9 @@ const Login = () => {
         dispatch({
           type: "LOGIN_SUCCESS",
           payload: {
-            user: response?.data?.data,
-            token: response?.data?.token,
-            role: response?.data?.role,
+            user: response?.data,
+            token: response?.token,
+            role: response?.role,
           },
         });
         toast.success(message);

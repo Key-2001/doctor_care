@@ -51,7 +51,7 @@ const Signup = () => {
       e.preventDefault();
       try {
         const response = await mutateRegister.mutateAsync();
-        const { success, message } = response?.data;
+        const { success, message } = response;
         if (!success) {
           throw new Error(message);
         }
