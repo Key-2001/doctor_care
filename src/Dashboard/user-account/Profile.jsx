@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import uploadImageToCloudinary from "../../utils/uploadCloudinary";
 import { useMutation } from "@tanstack/react-query";
-import { RegisterService } from "../../Services/AuthService";
 import { toast } from "react-toastify";
 import HashLoader from "react-spinners/HashLoader";
 import { updateProfileUserService } from "../../Services/UserService";
@@ -25,7 +24,7 @@ const Profile = (props) => {
     bloodType: "",
   });
   const mutateUpdate = useMutation({
-    mutationFn: () => updateProfileUserService(userData?._id, formData),
+    mutationFn: (data) => updateProfileUserService(userData?._id, data),
   });
   //! Function
   const handleInputChange = useCallback((e) => {
@@ -51,7 +50,10 @@ const Profile = (props) => {
     async (e) => {
       e.preventDefault();
       try {
-        const response = await mutateUpdate.mutateAsync();
+        const { password, ...rest } = formData;
+        const response = await mutateUpdate.mutateAsync(
+          password === "" ? { ...rest } : { ...formData }
+        );
         const { status, message } = response;
         console.log("kmads", response);
         if (!status) {
@@ -151,7 +153,7 @@ const Profile = (props) => {
               <img
                 src={formData.photo}
                 alt=""
-                className="w-full rounded-full"
+                className="w-full rounded-full h-full object-cover"
               />
             </figure>
           )}

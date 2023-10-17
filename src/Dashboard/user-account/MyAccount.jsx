@@ -53,7 +53,7 @@ const MyAccount = () => {
                   <img
                     src={dataUser?.photo}
                     alt=""
-                    className="w-full h-full rounded-full"
+                    className="w-full h-full rounded-full object-cover"
                   />
                 </figure>
               </div>
